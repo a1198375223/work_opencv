@@ -1,8 +1,10 @@
 package com.example.work;
 
+import android.Manifest;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,8 +16,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.UriUtils;
 import com.example.work.select.FileUtils;
+import com.example.work.select.ImageUtils;
+import com.example.work.select.PermissionUtils;
 import com.example.work.select.PictureBean;
 import com.example.work.select.PictureSelector;
+import com.yalantis.ucrop.UCrop;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -48,9 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
         /*结果回调*/
-        if (requestCode == PictureSelector.SELECT_REQUEST_CODE) {
+        if (resultCode == RESULT_OK && requestCode == PictureSelector.SELECT_REQUEST_CODE) {
             if (data != null) {
                 PictureBean pictureBean = data.getParcelableExtra(PictureSelector.PICTURE_RESULT);
 
@@ -72,6 +78,31 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onActivityResult: 6 end");
                 mResultImageView2.setImageBitmap(result[1]);
             }
+        } else if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            final Uri resultUri = UCrop.getOutput(data);
+            String path = ImageUtils.getImagePath(this, resultUri);
+            Log.d(TAG, "onActivityResult: 2 path=" + path);
+            Bitmap originBitmap = BitmapFactory.decodeFile(path);
+            Log.d(TAG, "onActivityResult: 3 originBitmap=" + originBitmap + " width=" + originBitmap.getWidth() + " height=" + originBitmap.getHeight());
+            mOriginImageView.setImageBitmap(originBitmap);
+            Log.d(TAG, "onActivityResult: 4 ok");
+
+            Bitmap[] result = clipImage(path, 0, 0, originBitmap.getWidth(), originBitmap.getHeight());
+            if (result.length == 1) {
+                Toast.makeText(this, "选择的图片没有检测到直线！重新选择！", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Log.d(TAG, "onActivityResult: 5 length:" + result.length);
+            mResultImageView.setImageBitmap(result[0]);
+            Log.d(TAG, "onActivityResult: 6 end");
+            mResultImageView2.setImageBitmap(result[1]);
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
+            if (cropError != null) {
+                Toast.makeText(this, "error: " + cropError.toString(), Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 

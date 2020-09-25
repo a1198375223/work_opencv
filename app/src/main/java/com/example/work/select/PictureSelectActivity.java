@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,8 +15,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.work.R;
+import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
+
+import static androidx.constraintlayout.motion.utils.Oscillator.TAG;
 
 /**
  * Author   wildma
@@ -37,6 +42,7 @@ public class PictureSelectActivity extends Activity {
     private int     mRatioWidth;
     private int     mRatioHeight;
     private boolean mCropEnabled;
+    private static final String SAMPLE_CROPPED_IMAGE_NAME = "SampleCropImage.jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,19 +125,34 @@ public class PictureSelectActivity extends Activity {
         }
         String picturePath = PictureSelectUtils.onActivityResult(this, requestCode, resultCode, data, mCropEnabled, mCropWidth, mCropHeight, mRatioWidth, mRatioHeight);
         if (!TextUtils.isEmpty(picturePath)) {
-            PictureBean bean = new PictureBean();
-            bean.setPath(picturePath);
-            bean.setCut(mCropEnabled);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                bean.setUri(ImageUtils.getImageUri(this, picturePath));
-            } else {
-                bean.setUri(Uri.fromFile(new File(picturePath)));
-            }
+//            PictureBean bean = new PictureBean();
+//            bean.setPath(picturePath);
+//            bean.setCut(mCropEnabled);
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                bean.setUri(ImageUtils.getImageUri(this, picturePath));
+//            } else {
+//                bean.setUri(Uri.fromFile(new File(picturePath)));
+//            }
+//
+//            Intent intent = new Intent();
+//            intent.putExtra(PictureSelector.PICTURE_RESULT, bean);
+//            setResult(RESULT_OK, intent);
+//            finish();
 
-            Intent intent = new Intent();
-            intent.putExtra(PictureSelector.PICTURE_RESULT, bean);
-            setResult(RESULT_OK, intent);
-            finish();
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+
+            String pathName = FileUtils.getImageCacheDir(this) + File.separator + SAMPLE_CROPPED_IMAGE_NAME;
+            BitmapFactory.decodeFile(picturePath, options);
+//                    int width = bitmap.getWidth();
+//                    int height = bitmap.getHeight();
+
+            Uri desUri = Uri.parse(pathName);
+            Log.d(TAG, "onActivityResult: origin uri=" + Uri.parse(picturePath) + " des uri=" + desUri);
+            UCrop.of(Uri.parse(picturePath), Uri.fromFile(new File(getCacheDir(), pathName)))
+                    .useSourceImageAspectRatio()
+                    //.withMaxResultSize(options.outWidth, options.outHeight)
+                    .start(this);
         }
     }
 }

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -16,6 +17,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 import androidx.core.content.FileProvider;
+
+import com.yalantis.ucrop.UCrop;
 
 
 /**
@@ -109,32 +112,46 @@ public class PictureSelectUtils {
     public static String onActivityResult(Activity activity, int requestCode, int resultCode, Intent data,
                                           boolean cropEnabled, int w, int h, int aspectX, int aspectY) {
         String picturePath = null;//图片路径
+//        BitmapFactory.Options options = new BitmapFactory.Options();
+//        options.inJustDecodeBounds = true;
+//
+//        String pathName = "file:///" + FileUtils.getImageCacheDir(activity) + File.separator +
+//                System.currentTimeMillis() + ".jpg";
+
+//        cropPictureTempUri = Uri.parse(pathName);
         if (resultCode == activity.RESULT_OK) {
             Uri uri = null;
             switch (requestCode) {
                 case GET_BY_ALBUM:
                     uri = data.getData();
-                    if (cropEnabled) {
-                        activity.startActivityForResult(crop(activity, uri, w, h, aspectX, aspectY), CROP);
-                    } else {
+//                    Bitmap bitmap = BitmapFactory.decodeFile(ImageUtils.getImagePath(activity, uri), options);
+//                    int width = bitmap.getWidth();
+//                    int height = bitmap.getHeight();
+//                    UCrop.of(uri, cropPictureTempUri)
+//                            .withAspectRatio(1, 1)
+//                            .withMaxResultSize(width, height)
+//                            .start(activity);
+//                    if (cropEnabled) {
+//                        activity.startActivityForResult(crop(activity, uri, w, h, aspectX, aspectY), CROP);
+//                    } else {
                         picturePath = ImageUtils.getImagePath(activity, uri);
-                    }
+//                    }
                     break;
                 case GET_BY_CAMERA:
                     uri = takePictureUri;
-                    if (cropEnabled) {
-                        activity.startActivityForResult(crop(activity, uri, w, h, aspectX, aspectY), CROP);
-                    } else {
+//                    if (cropEnabled) {
+//                        activity.startActivityForResult(crop(activity, uri, w, h, aspectX, aspectY), CROP);
+//                    } else {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             picturePath = ImageUtils.getImagePath(activity, uri);
                         } else {
                             picturePath = takePictureFile.getAbsolutePath();
                         }
-                    }
+//                    }
                     /*Android Q 以下发送广播通知图库更新，Android Q 以上使用 insert 的方式则会自动更新*/
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        activity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(takePictureFile)));
-                    }
+//                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+//                        activity.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(takePictureFile)));
+//                    }
                     break;
                 case CROP:
                     dealCrop(activity);
